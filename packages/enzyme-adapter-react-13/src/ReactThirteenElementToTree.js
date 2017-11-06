@@ -1,4 +1,4 @@
-import flatten from 'lodash/flatten';
+import { flatten, isArrayLike } from 'enzyme-adapter-utils';
 
 export function nodeTypeFromType(type) {
   if (typeof type === 'string') {
@@ -18,11 +18,16 @@ export default function elementToTree(el) {
   if (el === null || typeof el !== 'object' || !('type' in el)) {
     return el;
   }
-  const { type, props, key, ref } = el;
+  const {
+    type,
+    props,
+    key,
+    ref,
+  } = el;
   const { children } = props;
   let rendered = null;
-  if (Array.isArray(children)) {
-    rendered = flatten(children, true).map(elementToTree);
+  if (isArrayLike(children)) {
+    rendered = flatten([...children], true).map(elementToTree);
   } else if (typeof children !== 'undefined') {
     rendered = elementToTree(children);
   }
@@ -30,7 +35,7 @@ export default function elementToTree(el) {
     nodeType: nodeTypeFromType(type),
     type,
     props,
-    key,
+    key: key || undefined,
     ref,
     instance: null,
     rendered,

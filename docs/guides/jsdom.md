@@ -24,7 +24,10 @@ const { window } = jsdom;
 function copyProps(src, target) {
   const props = Object.getOwnPropertyNames(src)
     .filter(prop => typeof target[prop] === 'undefined')
-    .map(prop => Object.getOwnPropertyDescriptor(src, prop));
+    .reduce((result, prop) => ({
+      ...result,
+      [prop]: Object.getOwnPropertyDescriptor(src, prop),
+    }), {});
   Object.defineProperties(target, props);
 }
 
@@ -43,7 +46,7 @@ Here is the sample of [jsdom old API](https://github.com/tmpvar/jsdom/blob/maste
 ```js
 /* setup.js */
 
-const jsdom = require('jsdom').jsdom;
+const { jsdom } = require('jsdom');
 
 global.document = jsdom('');
 global.window = document.defaultView;
@@ -54,7 +57,10 @@ global.navigator = {
 function copyProps(src, target) {
   const props = Object.getOwnPropertyNames(src)
     .filter(prop => typeof target[prop] === 'undefined')
-    .map(prop => Object.getOwnPropertyDescriptor(src, prop));
+    .reduce((result, prop) => ({
+      ...result,
+      [prop]: Object.getOwnPropertyDescriptor(src, prop),
+    }), {});
   Object.defineProperties(target, props);
 }
 copyProps(document.defaultView, global);

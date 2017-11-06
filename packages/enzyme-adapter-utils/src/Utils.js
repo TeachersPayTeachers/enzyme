@@ -1,4 +1,3 @@
-import flatten from 'lodash/flatten';
 import createMountWrapper from './createMountWrapper';
 import createRenderWrapper from './createRenderWrapper';
 
@@ -75,9 +74,7 @@ export function withSetStateAllowed(fn) {
 
 export function assertDomAvailable(feature) {
   if (!global || !global.document || !global.document.createElement) {
-    throw new Error(
-      `Enzyme's ${feature} expects a DOM environment to be loaded, but found none`,
-    );
+    throw new Error(`Enzyme's ${feature} expects a DOM environment to be loaded, but found none`);
   }
 }
 
@@ -95,15 +92,40 @@ export function nodeTypeFromType(type) {
   return 'function';
 }
 
+function isIterable(obj) {
+  return (
+    obj != null &&
+    typeof Symbol === 'function' &&
+    typeof Symbol.iterator === 'symbol' &&
+    typeof obj[Symbol.iterator] === 'function'
+  );
+}
+
+export function isArrayLike(obj) {
+  return Array.isArray(obj) || (isIterable(obj) && typeof obj !== 'string');
+}
+
+export function flatten(arrs) {
+  return arrs.reduce(
+    (flattened, item) => flattened.concat(isArrayLike(item) ? flatten([...item]) : item),
+    [],
+  );
+}
+
 export function elementToTree(el) {
   if (el === null || typeof el !== 'object' || !('type' in el)) {
     return el;
   }
-  const { type, props, key, ref } = el;
+  const {
+    type,
+    props,
+    key,
+    ref,
+  } = el;
   const { children } = props;
   let rendered = null;
-  if (Array.isArray(children)) {
-    rendered = flatten(children, true).map(elementToTree);
+  if (isArrayLike(children)) {
+    rendered = flatten([...children], true).map(elementToTree);
   } else if (typeof children !== 'undefined') {
     rendered = elementToTree(children);
   }
@@ -111,7 +133,7 @@ export function elementToTree(el) {
     nodeType: nodeTypeFromType(type),
     type,
     props,
-    key,
+    key: key || undefined,
     ref,
     instance: null,
     rendered,
